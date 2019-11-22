@@ -16,7 +16,9 @@
       <input type="submit" value="Submit" />
     </form>
     <ul>
-      <li><%= task %> - <%= title %> - <%= publisher %> - <%= status %><li>
+      <% tasks.forEach(function(_task, i){%>
+      <li><%= _task.task %> - <%= _task.title %> - <%= _task.publisher.name %> - <%= _task.published %></li>
+      <%})%>
     </ul>
   </body>
 </html>

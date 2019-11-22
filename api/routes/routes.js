@@ -8,7 +8,7 @@ router
   .get(tasks.home)
   .post(tasks.addTask);
 router.route("/api").get(tasks.getAllTasks);
-router.route("/crawl").get(tasks.crawl);
+//router.route("/crawl").get(tasks.crawl);
 
 // router
 //   .route("/api/accounts/signUp")

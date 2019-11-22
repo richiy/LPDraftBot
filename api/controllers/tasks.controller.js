@@ -14,7 +14,16 @@ let miniDataBase = {
 };
 module.exports.home = function(req, res) {
   //console.log(path.root);
-  res.render("index", miniDataBase);
+  //res.render("index", miniDataBase);
+  Tasks.find().exec(function(err, allTasks) {
+    if (!err) {
+      //res.status(500).json(err);
+      console.log(allTasks);
+      res.render("index", { tasks: allTasks });
+    } else {
+      console.log(err);
+    }
+  });
 };
 //--------------------------------------------------
 module.exports.getAllTasks = function(req, res) {
@@ -23,7 +32,7 @@ module.exports.getAllTasks = function(req, res) {
     if (!err) {
       //res.status(500).json(err);
       console.log(allTasks);
-      res.render("index", miniDataBase);
+      res.render("index", { tasks: allTasks });
     } else {
       console.log(err);
     }
@@ -51,11 +60,18 @@ module.exports.addTask = function(req, res) {
       if (err) {
         res.status(400).json({ message: "creation error" });
       } else {
-        res.status(201).json(formData);
+        Tasks.find().exec(function(err, allTasks) {
+          if (!err) {
+            //res.status(500).json(err);
+            console.log(allTasks);
+            res.render("index", { tasks: allTasks });
+          } else {
+            console.log(err);
+          }
+        });
       }
     }
   );
-  res.render("index", miniDataBase);
 };
 module.exports.crawl = function(req, res) {
   createCalabasasApparelCrawler(
