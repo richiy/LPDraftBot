@@ -4,14 +4,15 @@ const Tasks = mongoose.model("taskModel");
 var request = require("request");
 var cheerio = require("cheerio");
 
+let pubCrawlers = {
+  "South Florida Reporter": function(taskNum, title, publisherName) {
+    console.log("crawling " + publisherName + " for " + title);
+  }
+};
+
 //const path = require("../../server.js"); //requires the root path of your project
 //--------------------------------------------------
-let miniDataBase = {
-  task: "1059",
-  title: "how to bink a site",
-  publisher: "South Florida Reporter",
-  status: "not published"
-};
+
 module.exports.home = function(req, res) {
   //console.log(path.root);
   //res.render("index", miniDataBase);
@@ -25,7 +26,47 @@ module.exports.home = function(req, res) {
     }
   });
 };
+
+module.exports.purgeAllTasks = function(req, res) {
+  Tasks.deleteMany({}, function() {
+    Tasks.find().exec(function(err, allTasks) {
+      if (!err) {
+        //res.status(500).json(err);
+        console.log(allTasks);
+        res.render("index", { tasks: allTasks });
+      } else {
+        console.log(err);
+      }
+    });
+  });
+};
 //--------------------------------------------------
+module.exports.getUnpublishedTasks = function(req, res) {
+  //mongodb find all users
+  Tasks.find({ published: { $eq: false } }).exec(function(err, allTasks) {
+    if (!err) {
+      //res.status(500).json(err);
+      console.log(allTasks);
+
+      res.render("index", { tasks: allTasks });
+    } else {
+      console.log(err);
+    }
+  });
+};
+module.exports.getPublishedTasks = function(req, res) {
+  //mongodb find all users
+  Tasks.find({ published: { $eq: true } }).exec(function(err, allTasks) {
+    if (!err) {
+      //res.status(500).json(err);
+      console.log(allTasks);
+
+      res.render("index", { tasks: allTasks });
+    } else {
+      console.log(err);
+    }
+  });
+};
 module.exports.getAllTasks = function(req, res) {
   //mongodb find all users
   Tasks.find().exec(function(err, allTasks) {
@@ -38,6 +79,7 @@ module.exports.getAllTasks = function(req, res) {
     }
   });
 };
+
 //--------------------------------------------------
 
 module.exports.addTask = function(req, res) {
@@ -54,7 +96,7 @@ module.exports.addTask = function(req, res) {
       task: req.body.task,
       title: req.body.title,
       publisher: { name: publisherName, url: publisherUrl },
-      published: false
+      published: true
     },
     function(err, formData) {
       if (err) {
@@ -74,44 +116,107 @@ module.exports.addTask = function(req, res) {
   );
 };
 module.exports.crawl = function(req, res) {
+  //interate all task that have published = false
+  //query task with published = false
+  Tasks.find({ published: { $eq: false } }).exec(function(err, allTasks) {
+    if (!err) {
+      //res.status(500).json(err);
+      //console.log(allTasks);
+      //let pubNames = {};
+      for (var i = 0; i < allTasks.length; i++) {
+        //console.log(allTasks[i].publisher.name);
+        //run publisher crawl for each tasks
+        //pubNames[i] = allTasks[i].publisher.name;
+        if (pubCrawlers.hasOwnProperty(allTasks[i].publisher.name)) {
+          pubCrawlers[allTasks[i].publisher.name](
+            allTasks[i].task,
+            allTasks[i].title,
+            allTasks[i].publisher.name
+          );
+        }
+      }
+
+      res.json({ hey: "duda" });
+    } else {
+      console.log(err);
+    }
+  });
+};
+module.exports.testCrawl = function(req, res) {
   createCalabasasApparelCrawler(
     "blog test 2",
     "https://calabasasapparel.net/blogs/news",
-    1059
-  )();
-  res.render("index", miniDataBase);
+    1121,
+    function() {
+      res.json({ dudaTest: "hey duda" });
+    }
+  );
 };
-function createCalabasasApparelCrawler(title, url, taskNum) {
-  let blogTitle = title;
-  let blogTaskNum = taskNum;
-  let published = false;
-  let mainBlogPageURL = url;
-  function crawler() {
-    const intervalObj = setInterval(() => {
-      request(mainBlogPageURL, function(error, response, html) {
-        if (!error) {
-          var $ = cheerio.load(html);
-          let blogArray = $(".blog-list-view");
-          let blogTitleResponse =
-            blogArray[0].children[1].children[1].children[1].children[1]
-              .children[1].children[1].children[0].children[0].data;
-          console.log(blogTitleResponse);
-          if (blogTitleResponse == blogTitle) {
-            clearInterval(intervalObj);
-            console.log("ending");
-            console.log(blogTaskNum + " published");
-            return blogTitleResponse;
-          } else {
-            console.log(blogTaskNum + " not published");
-          }
-        }
-      });
-    }, 1000);
-    return blogTaskNum;
-  }
-
-  return crawler;
+function createCalabasasApparelCrawler(title, url, taskNum, callback) {
+  request(url, function(error, response, html) {
+    if (!error) {
+      var $ = cheerio.load(html);
+      let blogArray = $(".article__title a");
+      //console.log(blogArray);
+      for (var i = 0; i < blogArray.length; i++) {
+        console.log(blogArray[i].attribs.href);
+      }
+      // if (blogTitleResponse == title) {
+      //   console.log(taskNum + " published");
+      //   return callback(blogTitleResponse == title);
+      // } else {
+      //   console.log(taskNum + " not published");
+      //   return callback(blogTitleResponse == title);
+      // }
+    }
+  });
 }
+// function createCalabasasApparelCrawler(title, url, taskNum, callback) {
+//   request(url, function(error, response, html) {
+//     if (!error) {
+//       var $ = cheerio.load(html);
+//       let blogArray = $(".blog-list-view");
+//       let blogTitleResponse =
+//         blogArray[0].children[1].children[1].children[1].children[1].children[1]
+//           .children[1].children[0].children[0].data;
+//       console.log(blogTitleResponse);
+//       if (blogTitleResponse == title) {
+//         console.log(taskNum + " published");
+//         return callback(blogTitleResponse == title);
+//       } else {
+//         console.log(taskNum + " not published");
+//         return callback(blogTitleResponse == title);
+//       }
+//     }
+//   });
+// }
+// function createCalabasasApparelCrawler(title, url, taskNum) {
+//   let blogTitle = title;
+//   let blogTaskNum = taskNum;
+//   let published = false;
+//   let mainBlogPageURL = url;
+//   function crawler() {
+//     request(mainBlogPageURL, function(error, response, html) {
+//       if (!error) {
+//         var $ = cheerio.load(html);
+//         let blogArray = $(".blog-list-view");
+//         let blogTitleResponse =
+//           blogArray[0].children[1].children[1].children[1].children[1]
+//             .children[1].children[1].children[0].children[0].data;
+//         console.log(blogTitleResponse);
+//         if (blogTitleResponse == blogTitle) {
+//           console.log(blogTaskNum + " published");
+//           return true;
+//         } else {
+//           console.log(blogTaskNum + " not published");
+//           return false;
+//         }
+//       }
+//     });
+//   }
+//
+//   return crawler;
+// }
 //--------------------------------------------------
 
 // module.exports.usersGetOne = function(req, res) {
