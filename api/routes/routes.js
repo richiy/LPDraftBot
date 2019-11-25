@@ -12,7 +12,8 @@ router.route("/unpublished-tasks").get(tasks.getUnpublishedTasks);
 router.route("/published-tasks").get(tasks.getPublishedTasks);
 router.route("/crawl").get(tasks.crawl);
 router.route("/purgeAllTasks").get(tasks.purgeAllTasks);
-router.route("/testCrawl").get(tasks.testCrawl);
+// router.route("/testCrawl").get(tasks.testCrawl);
+router.route("/updateByTaskNum").get(tasks.updateByTaskNum);
 
 // router
 //   .route("/api/accounts/signUp")

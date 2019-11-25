@@ -24,14 +24,6 @@ app.set("view engine", "ejs");
 app.use("/", routes);
 /*-------------------------------------------------------*/
 
-// app.get("/crawl", function(req, res) {
-//   createCalabasasApparelCrawler(
-//     "blog test 2",
-//     "https://calabasasapparel.net/blogs/news",
-//     1059
-//   )();
-// });
-
 console.log("running on 8080");
 
 app.listen("8080");

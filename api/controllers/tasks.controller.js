@@ -7,12 +7,26 @@ var cheerio = require("cheerio");
 let pubCrawlers = {
   "South Florida Reporter": function(taskNum, title, publisherName) {
     console.log("crawling " + publisherName + " for " + title);
+  },
+  "Calabasas Apparel": function(title, url, taskNum, callback) {
+    request(url, function(error, response, html) {
+      if (!error) {
+        var $ = cheerio.load(html);
+        let blogArray = $(".article__title a");
+        //console.log(blogArray);
+        for (var i = 0; i < blogArray.length; i++) {
+          if(blogArray[i].children[0].data == title){
+            console.log("found match for task " + taskNum);
+            //update published to true
+          }
+        }
+      }
+    });
+      return callback();
   }
 };
 
-//const path = require("../../server.js"); //requires the root path of your project
 //--------------------------------------------------
-
 module.exports.home = function(req, res) {
   //console.log(path.root);
   //res.render("index", miniDataBase);
@@ -26,7 +40,7 @@ module.exports.home = function(req, res) {
     }
   });
 };
-
+//--------------------------------------------------
 module.exports.purgeAllTasks = function(req, res) {
   Tasks.deleteMany({}, function() {
     Tasks.find().exec(function(err, allTasks) {
@@ -54,6 +68,7 @@ module.exports.getUnpublishedTasks = function(req, res) {
     }
   });
 };
+//--------------------------------------------------
 module.exports.getPublishedTasks = function(req, res) {
   //mongodb find all users
   Tasks.find({ published: { $eq: true } }).exec(function(err, allTasks) {
@@ -67,6 +82,7 @@ module.exports.getPublishedTasks = function(req, res) {
     }
   });
 };
+//--------------------------------------------------
 module.exports.getAllTasks = function(req, res) {
   //mongodb find all users
   Tasks.find().exec(function(err, allTasks) {
@@ -79,9 +95,7 @@ module.exports.getAllTasks = function(req, res) {
     }
   });
 };
-
 //--------------------------------------------------
-
 module.exports.addTask = function(req, res) {
   //add one user account
   console.log(req.body);
@@ -96,7 +110,7 @@ module.exports.addTask = function(req, res) {
       task: req.body.task,
       title: req.body.title,
       publisher: { name: publisherName, url: publisherUrl },
-      published: true
+      published: false
     },
     function(err, formData) {
       if (err) {
@@ -115,9 +129,20 @@ module.exports.addTask = function(req, res) {
     }
   );
 };
+//--------------------------------------------------
+module.exports.updateByTaskNum = function(req, res) {
+      Tasks.updateOne({task: 1234}, {
+        published: false
+      }, function(err, affected, resp) {
+       console.log(resp);
+    });
+    res.json({duda:"binked"})
+};
+//--------------------------------------------------
 module.exports.crawl = function(req, res) {
   //interate all task that have published = false
   //query task with published = false
+
   Tasks.find({ published: { $eq: false } }).exec(function(err, allTasks) {
     if (!err) {
       //res.status(500).json(err);
@@ -127,97 +152,29 @@ module.exports.crawl = function(req, res) {
         //console.log(allTasks[i].publisher.name);
         //run publisher crawl for each tasks
         //pubNames[i] = allTasks[i].publisher.name;
+
         if (pubCrawlers.hasOwnProperty(allTasks[i].publisher.name)) {
           pubCrawlers[allTasks[i].publisher.name](
-            allTasks[i].task,
             allTasks[i].title,
-            allTasks[i].publisher.name
+            allTasks[i].publisher.url,
+            allTasks[i].task,
+            function(){
+              console.log("done with crawl");
+            }
           );
         }
       }
-
+// function(title, url, taskNum, callback)
       res.json({ hey: "duda" });
     } else {
       console.log(err);
     }
   });
 };
-module.exports.testCrawl = function(req, res) {
-  createCalabasasApparelCrawler(
-    "blog test 2",
-    "https://calabasasapparel.net/blogs/news",
-    1121,
-    function() {
-      res.json({ dudaTest: "hey duda" });
-    }
-  );
-};
-function createCalabasasApparelCrawler(title, url, taskNum, callback) {
-  request(url, function(error, response, html) {
-    if (!error) {
-      var $ = cheerio.load(html);
-      let blogArray = $(".article__title a");
-      //console.log(blogArray);
-      for (var i = 0; i < blogArray.length; i++) {
-        console.log(blogArray[i].attribs.href);
-      }
-      // if (blogTitleResponse == title) {
-      //   console.log(taskNum + " published");
-      //   return callback(blogTitleResponse == title);
-      // } else {
-      //   console.log(taskNum + " not published");
-      //   return callback(blogTitleResponse == title);
-      // }
-    }
-  });
-}
-// function createCalabasasApparelCrawler(title, url, taskNum, callback) {
-//   request(url, function(error, response, html) {
-//     if (!error) {
-//       var $ = cheerio.load(html);
-//       let blogArray = $(".blog-list-view");
-//       let blogTitleResponse =
-//         blogArray[0].children[1].children[1].children[1].children[1].children[1]
-//           .children[1].children[0].children[0].data;
-//       console.log(blogTitleResponse);
-//       if (blogTitleResponse == title) {
-//         console.log(taskNum + " published");
-//         return callback(blogTitleResponse == title);
-//       } else {
-//         console.log(taskNum + " not published");
-//         return callback(blogTitleResponse == title);
-//       }
-//     }
-//   });
-// }
-// function createCalabasasApparelCrawler(title, url, taskNum) {
-//   let blogTitle = title;
-//   let blogTaskNum = taskNum;
-//   let published = false;
-//   let mainBlogPageURL = url;
-//   function crawler() {
-//     request(mainBlogPageURL, function(error, response, html) {
-//       if (!error) {
-//         var $ = cheerio.load(html);
-//         let blogArray = $(".blog-list-view");
-//         let blogTitleResponse =
-//           blogArray[0].children[1].children[1].children[1].children[1]
-//             .children[1].children[1].children[0].children[0].data;
-//         console.log(blogTitleResponse);
-//         if (blogTitleResponse == blogTitle) {
-//           console.log(blogTaskNum + " published");
-//           return true;
-//         } else {
-//           console.log(blogTaskNum + " not published");
-//           return false;
-//         }
-//       }
-//     });
-//   }
-//
-//   return crawler;
-// }
 //--------------------------------------------------
+
+// module.exports.testCrawl = function(req, res) {
+// };
 
 // module.exports.usersGetOne = function(req, res) {
 //   //var userId = req.params.userId;
@@ -235,6 +192,4 @@ function createCalabasasApparelCrawler(title, url, taskNum, callback) {
 //     }
 //   });
 // };
-//--------------------------------------------------
-
 //--------------------------------------------------
