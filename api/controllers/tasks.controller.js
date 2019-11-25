@@ -18,6 +18,11 @@ let pubCrawlers = {
           if(blogArray[i].children[0].data == title){
             console.log("found match for task " + taskNum);
             //update published to true
+            Tasks.updateOne({task: taskNum}, {
+              published: true
+            }, function(err, affected, resp) {
+             console.log(resp);
+          });
           }
         }
       }
@@ -141,8 +146,6 @@ module.exports.updateByTaskNum = function(req, res) {
 //--------------------------------------------------
 module.exports.crawl = function(req, res) {
   //interate all task that have published = false
-  //query task with published = false
-
   Tasks.find({ published: { $eq: false } }).exec(function(err, allTasks) {
     if (!err) {
       //res.status(500).json(err);
@@ -164,12 +167,23 @@ module.exports.crawl = function(req, res) {
           );
         }
       }
-// function(title, url, taskNum, callback)
-      res.json({ hey: "duda" });
     } else {
       console.log(err);
     }
+
+    Tasks.find().exec(function(err, allTasks) {
+      if (!err) {
+        //res.status(500).json(err);
+        console.log(allTasks);
+        res.render("index", { tasks: allTasks });
+      } else {
+        console.log(err);
+      }
+    });
   });
+
+
+
 };
 //--------------------------------------------------
 
