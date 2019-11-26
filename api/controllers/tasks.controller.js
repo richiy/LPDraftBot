@@ -12,24 +12,53 @@ let pubCrawlers = {
     request(url, function(error, response, html) {
       if (!error) {
         var $ = cheerio.load(html);
-        let blogArray = $(".article__title a");
-        //console.log(blogArray);
-        for (var i = 0; i < blogArray.length; i++) {
-          if(blogArray[i].children[0].data == title){
-            console.log("found match for task " + taskNum);
-            //update published to true
-            Tasks.updateOne({task: taskNum}, {
+        if ($.html().includes(title)) {
+          //update database
+          Tasks.updateOne(
+            { task: taskNum },
+            {
               published: true
-            }, function(err, affected, resp) {
-             console.log(resp);
-          });
-          }
+            },
+            function(err, affected, resp) {
+              console.log(resp);
+            }
+          );
         }
       }
     });
-      return callback();
+    return callback();
   }
 };
+// let pubCrawlers = {
+//   "South Florida Reporter": function(taskNum, title, publisherName) {
+//     console.log("crawling " + publisherName + " for " + title);
+//   },
+//   "Calabasas Apparel": function(title, url, taskNum, callback) {
+//     request(url, function(error, response, html) {
+//       if (!error) {
+//         var $ = cheerio.load(html);
+//         let blogArray = $(".article__title a");
+//         //console.log(blogArray);
+//         for (var i = 0; i < blogArray.length; i++) {
+//           if (blogArray[i].children[0].data == title) {
+//             console.log("found match for task " + taskNum);
+//             //update published to true
+//             Tasks.updateOne(
+//               { task: taskNum },
+//               {
+//                 published: true
+//               },
+//               function(err, affected, resp) {
+//                 console.log(resp);
+//               }
+//             );
+//           }
+//         }
+//       }
+//     });
+//     return callback();
+//   }
+// };
 
 //--------------------------------------------------
 module.exports.home = function(req, res) {
@@ -136,12 +165,16 @@ module.exports.addTask = function(req, res) {
 };
 //--------------------------------------------------
 module.exports.updateByTaskNum = function(req, res) {
-      Tasks.updateOne({task: 1234}, {
-        published: false
-      }, function(err, affected, resp) {
-       console.log(resp);
-    });
-    res.json({duda:"binked"})
+  Tasks.updateOne(
+    { task: 1234 },
+    {
+      published: false
+    },
+    function(err, affected, resp) {
+      console.log(resp);
+    }
+  );
+  res.json({ duda: "binked" });
 };
 //--------------------------------------------------
 module.exports.crawl = function(req, res) {
@@ -161,7 +194,7 @@ module.exports.crawl = function(req, res) {
             allTasks[i].title,
             allTasks[i].publisher.url,
             allTasks[i].task,
-            function(){
+            function() {
               console.log("done with crawl");
             }
           );
@@ -181,13 +214,31 @@ module.exports.crawl = function(req, res) {
       }
     });
   });
-
-
-
 };
-//--------------------------------------------------
 
+// function testCrawler(title, url, taskNum, callback) {
+//   request(url, function(error, response, html) {
+//     if (!error) {
+//       var $ = cheerio.load(html);
+//
+//       console.log($.html().includes(title));
+//     }
+//   });
+//   return callback();
+// }
+// //--------------------------------------------------
+//
 // module.exports.testCrawl = function(req, res) {
+//   console.log("##################################");
+//   testCrawler(
+//     "blog test 2",
+//     "https://calabasasapparel.net/blogs/news",
+//     1234,
+//     function() {
+//       console.log("crawl done");
+//     }
+//   );
+//   res.json({ binker: "site binked" });
 // };
 
 // module.exports.usersGetOne = function(req, res) {
