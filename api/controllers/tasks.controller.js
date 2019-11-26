@@ -3,32 +3,93 @@ const Tasks = mongoose.model("taskModel");
 //                  name of model ^
 var request = require("request");
 var cheerio = require("cheerio");
+//--------------------------------------------------
 
-let pubCrawlers = {
-  "South Florida Reporter": function(taskNum, title, publisherName) {
-    console.log("crawling " + publisherName + " for " + title);
-  },
-  "Calabasas Apparel": function(title, url, taskNum, callback) {
-    request(url, function(error, response, html) {
-      if (!error) {
-        var $ = cheerio.load(html);
-        if ($.html().includes(title)) {
-          //update database
-          Tasks.updateOne(
-            { task: taskNum },
-            {
-              published: true
-            },
-            function(err, affected, resp) {
-              console.log(resp);
+setInterval(function(){
+  //interate all task that have published = false
+  Tasks.find({ published: { $eq: false } }).exec(function(err, allTasks) {
+    if (!err) {
+
+      for (var i = 0; i < allTasks.length; i++) {
+
+          crawl(
+            allTasks[i].title,
+            allTasks[i].publisher.url,
+            allTasks[i].task,
+            function() {
+              console.log("done with crawl");
             }
           );
-        }
+
       }
-    });
-    return callback();
-  }
+    } else {
+      console.log(err);
+    }
+  });
+}, 10000)
+
+function crawl(title, url, taskNum, callback) {
+  request(url, function(error, response, html) {
+    if (!error) {
+      console.log(taskNum + " : " + 'crawling ' + url + " for " + title);
+      var $ = cheerio.load(html);
+      if ($.html().includes(title)) {
+        //update database
+        console.log("updated " + taskNum);
+        Tasks.updateOne(
+          { task: taskNum },
+          {
+            published: true
+          },
+          function(err, affected, resp) {
+            console.log('');
+          }
+        );
+      }
+    }
+  });
+  return callback();
+}
+//--------------------------------------------------
+module.exports.home = function(req, res) {
+
+
+  Tasks.find().exec(function(err, allTasks) {
+    if (!err) {
+      //res.status(500).json(err);
+      console.log('sending updated list');
+      res.render("index", { tasks: allTasks });
+    } else {
+      console.log(err);
+    }
+  });
 };
+
+// let pubCrawlers = {
+//   "South Florida Reporter": function(taskNum, title, publisherName) {
+//     console.log("crawling " + publisherName + " for " + title);
+//   },
+//   "Calabasas Apparel": function(title, url, taskNum, callback) {
+//     request(url, function(error, response, html) {
+//       if (!error) {
+//         var $ = cheerio.load(html);
+//         if ($.html().includes(title)) {
+//           //update database
+//           Tasks.updateOne(
+//             { task: taskNum },
+//             {
+//               published: true
+//             },
+//             function(err, affected, resp) {
+//               console.log(resp);
+//             }
+//           );
+//         }
+//       }
+//     });
+//     return callback();
+//   }
+// };
 // let pubCrawlers = {
 //   "South Florida Reporter": function(taskNum, title, publisherName) {
 //     console.log("crawling " + publisherName + " for " + title);
@@ -61,19 +122,22 @@ let pubCrawlers = {
 // };
 
 //--------------------------------------------------
-module.exports.home = function(req, res) {
-  //console.log(path.root);
-  //res.render("index", miniDataBase);
-  Tasks.find().exec(function(err, allTasks) {
-    if (!err) {
-      //res.status(500).json(err);
-      console.log(allTasks);
-      res.render("index", { tasks: allTasks });
-    } else {
-      console.log(err);
-    }
-  });
-};
+// module.exports.home = function(req, res) {
+//   //console.log(path.root);
+//   //res.render("index", miniDataBase);
+//   Tasks.find().exec(function(err, allTasks) {
+//     if (!err) {
+//       //res.status(500).json(err);
+//       console.log(allTasks);
+//       res.render("index", { tasks: allTasks });
+//     } else {
+//       console.log(err);
+//     }
+//   });
+// };
+//--------------------------------------------------
+
+
 //--------------------------------------------------
 module.exports.purgeAllTasks = function(req, res) {
   Tasks.deleteMany({}, function() {
@@ -181,16 +245,10 @@ module.exports.crawl = function(req, res) {
   //interate all task that have published = false
   Tasks.find({ published: { $eq: false } }).exec(function(err, allTasks) {
     if (!err) {
-      //res.status(500).json(err);
-      //console.log(allTasks);
-      //let pubNames = {};
-      for (var i = 0; i < allTasks.length; i++) {
-        //console.log(allTasks[i].publisher.name);
-        //run publisher crawl for each tasks
-        //pubNames[i] = allTasks[i].publisher.name;
 
-        if (pubCrawlers.hasOwnProperty(allTasks[i].publisher.name)) {
-          pubCrawlers[allTasks[i].publisher.name](
+      for (var i = 0; i < allTasks.length; i++) {
+
+          crawl(
             allTasks[i].title,
             allTasks[i].publisher.url,
             allTasks[i].task,
@@ -198,7 +256,7 @@ module.exports.crawl = function(req, res) {
               console.log("done with crawl");
             }
           );
-        }
+
       }
     } else {
       console.log(err);
@@ -207,12 +265,14 @@ module.exports.crawl = function(req, res) {
     Tasks.find().exec(function(err, allTasks) {
       if (!err) {
         //res.status(500).json(err);
-        console.log(allTasks);
+        console.log('sending updated list');
         res.render("index", { tasks: allTasks });
       } else {
         console.log(err);
       }
     });
+
+
   });
 };
 
