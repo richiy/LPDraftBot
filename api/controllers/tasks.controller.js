@@ -33,7 +33,7 @@ function crawl(title, url, taskNum, callback) {
     if (!error) {
       console.log(taskNum + " : " + 'crawling ' + url + " for " + title);
       var $ = cheerio.load(html);
-      if ($.html().includes(title)) {
+      if ($.html().toLowerCase().includes(title.toLowerCase())) {
         //update database
         console.log("updated " + taskNum);
         Tasks.updateOne(
