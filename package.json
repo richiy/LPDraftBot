@@ -10,6 +10,7 @@
     "ejs": "^2.7.2",
     "express": "latest",
     "mongoose": "^5.7.11",
-    "request": "latest"
+    "request": "latest",
+    "string-similarity": "^3.0.0"
   }
 }

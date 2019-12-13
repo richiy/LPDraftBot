@@ -14,6 +14,8 @@ router.route("/crawl").get(tasks.crawl);
 router.route("/purgeAllTasks").get(tasks.purgeAllTasks);
 // router.route("/testCrawl").get(tasks.testCrawl);
 router.route("/updateByTaskNum").get(tasks.updateByTaskNum);
+router.route("/deepCrawl").get(tasks.deepCrawl);
+
 
 // router
 //   .route("/api/accounts/signUp")

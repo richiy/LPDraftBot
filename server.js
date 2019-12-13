@@ -6,7 +6,7 @@ var fs = require("fs");
 var bodyParser = require("body-parser");
 var app = express();
 
-//app.use(express.static("public"));
+app.use(express.static("views"));
 
 // create application/json parser
 //var jsonParser = bodyParser.json();

@@ -3,7 +3,30 @@ const Tasks = mongoose.model("taskModel");
 //                  name of model ^
 var request = require("request");
 var cheerio = require("cheerio");
+let stringSimilarity = require('string-similarity');
 //--------------------------------------------------
+
+module.exports.deepCrawl = function(req, res) {
+
+  request("https://sequinsinthesouth.com/", function(error, response, html) {
+    let targetString = "Easy Nutella Cupcake Recipe";
+    if (!error) {
+      const $ = cheerio.load(html);
+      let blogTitlesObject = $('h2').contents();
+      blogTitlesObject.map(function(i, el){
+        if(stringSimilarity.compareTwoStrings(targetString, $(this).text()) > 0.8){
+          console.log($(this).text());
+        }
+      });
+
+
+    }
+    res.json({duda:'sorry duda'});
+  });
+
+
+
+};
 
 setInterval(function(){
   //interate all task that have published = false
@@ -26,7 +49,7 @@ setInterval(function(){
       console.log(err);
     }
   });
-}, 10000)
+}, 1000 * 60 * 60)
 
 function crawl(title, url, taskNum, callback) {
   request(url, function(error, response, html) {

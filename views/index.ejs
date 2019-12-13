@@ -3,13 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <title></title>
+    <link rel="stylesheet" type="text/css" href="./master.css" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+
   </head>
   <body>
+    <div class="header">
+      <img src="http://seotool.logicalposition.com/assets/images/logo.png">
+
+    </div>
+    <div class="form-wrapper">
     <form class="bot-creator-form" action="/" method="post" enctype="application/x-www-form-urlencoded">
       <input type="text" name="title" value="" placeholder="Blog Title" />
       <input type="text" name="task" value="" placeholder="Task Number" />
       <select name="publisher" required>
-        <!-- <option value="Calabasas Apparel,https://calabasasapparel.net/blogs/news">Calabasas Apparel</option> -->
         <option value="South Florida Reporter,https://southfloridareporter.com/logical-position/">South Florida Reporter</option>
         <option value="Sequins in the South,https://sequinsinthesouth.com/">Sequins in the South</option>
         <option value="Best Movies Right Now,https://bestmoviesrightnow.com/">Best Movies Right Now</option>
@@ -22,21 +29,43 @@
         <option value="Upstate Business Journal,https://upstatebusinessjournal.com/author/morgan/">Upstate Business Journal</option>
         <option value="Ecos Paints,https://www.ecospaints.net/blog">Ecos Paints</option>
         <option value="Black Business,https://calabasasapparel.net/blogs/news">Black Business</option>
-        <option value="Calabasas Apparel,https://www.blackbusiness.com/search?max-results=25">Calabasas Apparel</option>
+        <option value="Black Business,https://www.blackbusiness.com/search?max-results=25">Black Business</option>
         <option value="Low Income,https://www.lowincome.org/search?max-results=50">Low Income</option>
         <option value="Business Grants,https://www.businessgrants.org/search?max-results=10">Business Grants</option>
         <option value="Grants for Women,https://www.grantsforwomen.org/search?max-results=50">Grants for Women</option>
         <option value="Black History,https://www.blackhistory.com/search?updated-max=2020-12-31T18:50:00-07:00&max-results=25#">Black History</option>
         <!-- <option value="Calabasas Apparel,https://calabasasapparel.net/blogs/news">Calabasas Apparel</option> -->
-        <!-- <option value="Calabasas Apparel,https://calabasasapparel.net/blogs/news">Calabasas Apparel</option> -->
-        <!-- <option value="Calabasas Apparel,https://calabasasapparel.net/blogs/news">Calabasas Apparel</option> -->
       </select>
-      <input type="submit" value="Submit" />
+      <input class="button" type="submit" value="Submit" />
     </form>
-    <ul>
-      <% tasks.forEach(function(_task, i){%>
-      <li><%= _task.task %> - <%= _task.title %> - <%= _task.publisher.name %> - <% if(_task.published){ %><span style="color:green;">PUBLISHED</span><% } else{ %><span style="color:red;">Unpublished</span><% } %></li>
-      <%})%>
-    </ul>
+  </div>
+    <table>
+  <tr>
+    <th>Task Number</th>
+    <th>Title</th>
+    <th>Publisher</th>
+    <th>Status</th>
+    <th>Copy Title & Go to Blog</th>
+  </tr>
+  <% tasks.forEach(function(_task, i){%>
+    <tr class="row">
+      <td class="task-td"><span>#<%= _task.task %></span></td>
+      <td><input class="task-title"  type="text" value="<%= _task.title %>"> </td>
+      <td><%= _task.publisher.name %></td>
+      <td><% if(_task.published){ %><span style="color:green;">PUBLISHED</span><% } else{ %><span style="color:red;">Unpublished</span><% } %></td>
+      <td><a class="blog-url" href="<%= _task.publisher.url %>" target="_blank">Go to Blog page</a><button class="button" onclick="copyTitle(this)">Copy Title</button></td>
+    </tr>
+  <%})%>
+</table>
   </body>
 </html>
+<script type="text/javascript">
+  function copyTitle(event){
+    let blogTitle = event.parentNode.parentNode.childNodes[3].childNodes[0];
+    blogTitle.select();
+    document.execCommand('copy');
+    console.log(event.parentNode.childNodes[0].href);
+    let win = window.open(event.parentNode.childNodes[0].href, '_blank');
+    win.focus();
+  }
+</script>
